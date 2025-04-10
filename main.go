@@ -12,5 +12,5 @@ func cleanInput(text string) []string {
 }
 
 func main() {
-	println("Hello, World!")
+
 }
