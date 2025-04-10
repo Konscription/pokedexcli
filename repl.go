@@ -19,16 +19,9 @@ func cleanInput(text string) []string {
 func startRepl() {
 	//scanner to read from standard input
 	scanner := bufio.NewScanner(os.Stdin)
-
 	for {
 		fmt.Print("Pokedex > ")
-
-		//wait for user input (enter key pressed)
-		if !scanner.Scan() {
-			// if scan fails exit loop
-			fmt.Println("\nExiting Pokedex...")
-			break
-		}
+		scanner.Scan()
 
 		// get and clean input text
 		input := cleanInput(scanner.Text())
@@ -38,7 +31,7 @@ func startRepl() {
 			continue
 		}
 
-		// split and get first word
+		// get first word
 		command := input[0]
 
 		// print command
