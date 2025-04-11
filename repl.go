@@ -34,7 +34,39 @@ func startRepl() {
 		// get first word
 		command := input[0]
 
-		// print command
-		fmt.Printf("Your command was: %s\n", command)
+		// check if command exists
+		cmd, exists := getCommands()[command]
+		if exists {
+			err := cmd.callback()
+			if err != nil {
+				fmt.Println(err)
+			}
+			continue
+		} else {
+			fmt.Println("Unknown command")
+			continue
+		}
+	}
+}
+
+// cliCommand represents a command in the REPL
+type cliCommand struct {
+	name        string
+	description string
+	callback    func() error
+}
+
+func getCommands() map[string]cliCommand {
+	return map[string]cliCommand{
+		"help": {
+			name:        "help",
+			description: "Display this help message",
+			callback:    commandHelp,
+		},
+		"exit": {
+			name:        "exit",
+			description: "Exit the Pokedex",
+			callback:    commandExit,
+		},
 	}
 }
