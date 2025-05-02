@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -9,29 +10,34 @@ import (
 // should display the next 20 location areas.
 var currentPage int
 
-func commandMap() error {
-	locationAreas := getLocationAreas(currentPage)
-	for _, area := range locationAreas[:] {
-		fmt.Printf("%s\n", area)
+func commandMapforward(cfg *config) error {
+	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.nextLocationsURL)
+	if err != nil {
+		return err
 	}
-	currentPage++
+
+	cfg.nextLocationsURL = locationsResp.Next
+	cfg.prevLocationsURL = locationsResp.Previous
+
+	for _, loc := range locationsResp.Results {
+		fmt.Println(loc.Name)
+	}
 	return nil
 }
 
-func commandMapback() error {
-	if currentPage == 0 {
-		fmt.Println("you're on the first page")
-		return nil
+func commandMapback(cfg *config) error {
+	if cfg.prevLocationsURL == nil {
+		return errors.New("you're on the first page")
 	}
-	currentPage -= 2
-	if currentPage < 0 {
-		currentPage = 0
-		fmt.Println("you're on the first page")
-		return nil
+
+	locationResp, err := cfg.pokeapiClient.ListLocations(cfg.prevLocationsURL)
+	if err != nil {
+		return err
 	}
-	locationAreas := getLocationAreas(currentPage)
-	for _, area := range locationAreas[:] {
-		fmt.Printf("%s\n", area)
+	cfg.nextLocationsURL = locationResp.Next
+	cfg.prevLocationsURL = locationResp.Previous
+	for _, loc := range locationResp.Results {
+		fmt.Println(loc.Name)
 	}
 	return nil
 }

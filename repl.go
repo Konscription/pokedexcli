@@ -5,39 +5,38 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/Konscription/pokedexcli/internal/pokeapi"
 )
 
-func cleanInput(text string) []string {
-	splitFn := func(c rune) bool { return c == ' ' }
-	output := strings.FieldsFunc(strings.ToLower(text), splitFn)
-	for i := range len(output) - 1 {
-		output[i] = strings.TrimSpace(output[i])
-	}
-	return output
+type config struct {
+	pokeapiClient    pokeapi.Client
+	nextLocationsURL *string
+	prevLocationsURL *string
 }
 
-func startRepl() {
-	//scanner to read from standard input
-	scanner := bufio.NewScanner(os.Stdin)
+func startRepl(cfg *config) {
+	//reader to read from standard input
+	reader := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
-		scanner.Scan()
+		reader.Scan()
 
-		// get and clean input text
-		input := cleanInput(scanner.Text())
+		// get and clean words text
+		words := cleanInput(reader.Text())
 
 		// skip if empty
-		if len(input) == 0 {
+		if len(words) == 0 {
 			continue
 		}
 
 		// get first word
-		command := input[0]
+		commandName := words[0]
 
 		// check if command exists
-		cmd, exists := getCommands()[command]
+		command, exists := getCommands()[commandName]
 		if exists {
-			err := cmd.callback()
+			err := command.callback(cfg)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -49,11 +48,17 @@ func startRepl() {
 	}
 }
 
+func cleanInput(text string) []string {
+	output := strings.ToLower(text)
+	words := strings.Fields(output)
+	return words
+}
+
 // cliCommand represents a command in the REPL
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -63,20 +68,20 @@ func getCommands() map[string]cliCommand {
 			description: "Display this help message",
 			callback:    commandHelp,
 		},
-		"exit": {
-			name:        "exit",
-			description: "Exit the Pokedex",
-			callback:    commandExit,
-		},
 		"map": {
 			name:        "map",
 			description: "Display the next 20 location areas",
-			callback:    commandMap,
+			callback:    commandMapforward,
 		},
 		"mapb": {
 			name:        "mapb",
 			description: "Display the previous 20 location areas",
 			callback:    commandMapback,
+		},
+		"exit": {
+			name:        "exit",
+			description: "Exit the Pokedex",
+			callback:    commandExit,
 		},
 	}
 }
