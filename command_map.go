@@ -8,7 +8,6 @@ import (
 // commandMap displays the names of 20 location areas
 // in the pokemon world. Each subsequent call to map
 // should display the next 20 location areas.
-var currentPage int
 
 func commandMapforward(cfg *config) error {
 	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.nextLocationsURL)
